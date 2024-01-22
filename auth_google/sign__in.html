@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+      integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N"
+      crossorigin="anonymous"
+    />
+    <style>
+        body {
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         height: 100vh;
+         margin: 0;
+     }
+     .google-container {
+         text-align: center;
+     }
+    
+     .center-container {
+         text-align: center;
+     }
+    
+     .otp-container {
+         display: flex;
+         justify-content: center;
+         gap: 10px; /* Adjust the gap between boxes */
+     }
+    
+     .otp-box {
+         width: 30px; /* Adjust the width of each box */
+         height: 30px; /* Adjust the height of each box */
+         text-align: center;
+         font-size: 16px;
+         border: 1px solid #ccc;
+         border-radius: 5px;
+     }
+    
+     .otp-input {
+         display: none; /* Hide the actual input field */
+     }
+      </style>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+
+    <title>Sign In</title>
+  </head>
+  <body>
+    
+   <style>
+    p{
+      color: red;
+    }
+    
+    body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .center-container {
+            text-align: center;
+        
+            
+        }
+
+      </style>
+    </head>
+    <body>
+      <script src="https://www.gstatic.com/firebasejs/8.2.6/firebase-app.js"></script>
+      <script src="https://apis.google.com/js/platform.js" async defer></script>
+
+
+      <!-- Add Firebase products that you want to use -->
+      <script src="https://www.gstatic.com/firebasejs/8.2.6/firebase-auth.js"></script>
+      <script src="https://www.gstatic.com/firebasejs/8.2.6/firebase-database.js"></script>
+
+      <script>
+        const firebaseConfig = {
+
+apiKey: "AIzaSyBEwxFrkcPUg9zxonN2umIA1Z_E3X1tGP8",
+
+authDomain: "webapp-1912c.firebaseapp.com",
+
+projectId: "webapp-1912c",
+
+storageBucket: "webapp-1912c.appspot.com",
+
+messagingSenderId: "637487044305",
+
+appId: "1:637487044305:web:8408e6e2fb3276cb7ad7f0",
+
+measurementId: "G-K8MFHV3XSL"
+
+};
+
+
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+
+
+
+function googleSignIn() {
+var parentdiv= document.querySelector('h3');
+var otpDiv=document.querySelector('.center-container');
+const contentElement = document.getElementById('email').value;
+var database = firebase.database();
+var dataRef = firebase.database().ref().child('Users');
+
+dataRef.once('value')
+.then(snapshot => {
+if (snapshot.exists()) {
+snapshot.forEach(childSnapshot => {
+ const element = childSnapshot.val();
+ console.log(element.email);
+ 
+  if (contentElement === element.email) {
+   console.log('User already exists');
+   parentdiv.style.display='none';
+   otpDiv.style.display='block';
+  //  console.log('User already exists')
+   generatePrivateKey().then(privateKey=>{
+   const fourDigitNumber= generateFourDigitNumber(privateKey);
+
+   console.log('generated private key:', privateKey);
+   console.log('generated 4-digit number:', fourDigitNumber);
+  });}
+  else{
+    console.log("not eligible");
+  }
+//  } else {
+//    var provider = new firebase.auth.GoogleAuthProvider();
+//    firebase.auth()
+//      .signInWithPopup(provider)
+//      .then(result => {
+//        /** @type {firebase.auth.OAuthCredential}*/
+//        var credential = result.credential;
+//        var token = credential.accessToken;
+//        var user = result.user;
+//        saveMessage(user);
+//        console.log(user['uid']);
+//      })
+//      .catch(error => {
+//        var errorCode = error.code;
+//        var message = error.message;
+//        var email = error.email;
+//        console.log(message);
+//      });
+
+ 
+});
+} else {
+console.log("No data available");
+}
+})
+.catch(error => {
+console.log("Error fetching data:", error);
+});
+
+}
+
+async function generatePrivateKey(){
+try{
+const key= await crypto.subtle.generateKey(
+   {
+       name:'AES-GCM',
+       length:256,
+   },
+   true,
+   ['encrypt', 'decrypt']
+);
+
+const exportedKey= await crypto.subtle.exportKey('raw',key);
+
+const hexKey= Array.from(new Uint8Array(exportedKey))
+.map(byte=>byte.toString(16).padStart(2,'0'))
+.join('');
+
+return hexKey;
+}
+catch(error){
+console.log('Error generating private Key', error);
+}
+}
+
+function generateFourDigitNumber(privateKey){
+
+const fourDigitNumber= parseInt(privateKey.substring(0,4),16)%10000;
+return fourDigitNumber.toString().padStart(4,'0');
+}
+
+const enteredOtp=()=>{
+  var otpDiv=document.querySelector('.center-container');
+  var dataRef2=firebase.database().ref().child('verification');
+  var otp=document.querySelectorAll('.otp-box');
+  console.log('otp array:'+otp);
+  var EnteredOtp='';
+  otp.forEach((otp)=>{
+    EnteredOtp += otp.innerText;
+  })
+  var enteredOTPNumber = parseInt(EnteredOtp, 10);
+
+  console.log(typeof(enteredOTPNumber));
+  console.log(enteredOTPNumber);
+  dataRef2.once('value')
+.then((snapshot)=>{
+  snapshot.forEach((childSnapshot)=>{
+    const value=childSnapshot.val();
+    console.log(typeof(value));
+    if(enteredOTPNumber === value){
+      console.log('user verified');
+      redirectToPage();
+    }
+    else{
+      var element= document.createElement('p');
+      element.innerText='Incorrect OTP';
+      otpDiv.appendChild(element);
+      console.log('user not verified');
+      setTimeout(() => {
+        otpDiv.removeChild(element);
+      }, 3000);
+    }
+
+  })
+})
+ 
+}
+function redirectToPage() {
+            // Specify the URL of the page you want to redirect to
+            var newPageURL = "response.html";
+
+            // Use window.location to redirect to the new page
+            window.location.href = newPageURL;
+        }
+
+
+
+function signOut(){
+   firebase.auth().signOut().then(() => {
+// Sign-out successful.
+    }).catch((error) => {
+// An error happened.
+   });}
+
+   function saveMessage(user){
+// Get the content element by its ID
+var database = firebase.database();
+ const newMessage= database.ref().child('Users');
+  const addMessage= newMessage.push({
+   email:user['email'],
+   uid:user['uid']
+})}
+
+
+
+
+      </script>
+      <div>
+    <div class="google-container">
+      <h3><span class="badge badge-warning badge-hover">G</span>
+      <input type="email" id="email">
+      <button type="button" onclick="googleSignIn()" id="gbutton" class="btn btn-light">Sign In With Google</button></h3>
+    </div>
+        <div class="center-container" style="display: none;">
+             <h3>Please Enter Your OTP</h3>
+         <div class="otp-container"  >
+             <div class="otp-box" contenteditable="true"></div>
+             <div class="otp-box" contenteditable="true"></div>
+             <div class="otp-box" contenteditable="true"></div>
+             <div class="otp-box" contenteditable="true"></div>
+         </div>
+            <button class="btn btn-danger mt-2" onclick="enteredOtp()" >Verify OTP</button>
+            <button class="btn btn-light mt-2">Resend OTP</button>
+         <input type="text" class="otp-input" maxlength="6">
+        </div>
+      </div>
+        
+
+    
+  </body>
+</html>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
+
+    
+  </body>
+</html>
