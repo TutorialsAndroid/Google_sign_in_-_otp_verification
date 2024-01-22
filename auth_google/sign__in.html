@@ -107,8 +107,6 @@ measurementId: "G-K8MFHV3XSL"
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
-
-
 function googleSignIn() {
 var parentdiv= document.querySelector('h3');
 var otpDiv=document.querySelector('.center-container');
@@ -137,26 +135,7 @@ snapshot.forEach(childSnapshot => {
   else{
     console.log("not eligible");
   }
-//  } else {
-//    var provider = new firebase.auth.GoogleAuthProvider();
-//    firebase.auth()
-//      .signInWithPopup(provider)
-//      .then(result => {
-//        /** @type {firebase.auth.OAuthCredential}*/
-//        var credential = result.credential;
-//        var token = credential.accessToken;
-//        var user = result.user;
-//        saveMessage(user);
-//        console.log(user['uid']);
-//      })
-//      .catch(error => {
-//        var errorCode = error.code;
-//        var message = error.message;
-//        var email = error.email;
-//        console.log(message);
-//      });
 
- 
 });
 } else {
 console.log("No data available");
